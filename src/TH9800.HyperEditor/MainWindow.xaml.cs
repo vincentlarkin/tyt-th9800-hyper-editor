@@ -186,8 +186,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             await Task.Run(() => _radio.WriteImage(SelectedPort!, edited, progress));
             Log("All write blocks were acknowledged.");
 
-            SetStatus("Reading back for byte-for-byte verification…", 0);
-            var after = await Task.Run(() => _radio.ReadImage(SelectedPort!, progress));
+            var after = await ReadBackAfterWriteAsync(SelectedPort!, progress);
             var readbackPath = SaveBackup(after, "POST-WRITE");
             var expectedHash = Convert.ToHexString(SHA256.HashData(edited));
             var actualHash = Convert.ToHexString(SHA256.HashData(after));
@@ -195,12 +194,42 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 throw new InvalidDataException($"Readback mismatch. The safety backup is {backupPath}; readback is {readbackPath}.\nExpected {expectedHash}\nActual   {actualHash}");
 
             LoadImage(after, readbackPath);
+            Log("Verified readback loaded as the clean baseline. Staged changes cleared.");
             Log($"WRITE VERIFIED: {actualHash}");
             MessageBox.Show(this,
                 "The post-write readback matched byte-for-byte. Press a Hyper key on the radio to recall its updated profile.",
                 "Write verified", MessageBoxButton.OK, MessageBoxImage.Information);
         });
     }
+
+    private async Task<byte[]> ReadBackAfterWriteAsync(string portName, IProgress<int> progress)
+    {
+        const int maximumAttempts = 4;
+        var restartDelay = TimeSpan.FromSeconds(3);
+        var retryDelay = TimeSpan.FromSeconds(2);
+
+        SetStatus("Radio is restarting before verification…", 0);
+        Log("Write complete. Waiting 3 seconds for the radio to become ready for verification.");
+        await Task.Delay(restartDelay);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                SetStatus($"Reading back for byte-for-byte verification (attempt {attempt}/{maximumAttempts})…", 0);
+                return await Task.Run(() => _radio.ReadImage(portName, progress));
+            }
+            catch (Exception exception) when (attempt < maximumAttempts && IsTransientRadioReadyError(exception))
+            {
+                Log($"Verification connection attempt {attempt}/{maximumAttempts} found the radio still restarting. Retrying in 2 seconds.");
+                SetStatus("Radio is not ready yet; verification will retry…", 0);
+                await Task.Delay(retryDelay);
+            }
+        }
+    }
+
+    private static bool IsTransientRadioReadyError(Exception exception) =>
+        exception is TimeoutException or IOException or UnauthorizedAccessException;
 
     private byte[] BuildEditedImage()
     {
@@ -211,11 +240,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void LoadImage(byte[] bytes, string path)
     {
         var image = HyperImage.FromBytes(bytes);
+        var loadedProfiles = image.ReadProfiles();
+        var correctedDimmers = loadedProfiles
+            .Where(profile => profile.Backlight is < 0 or > 4)
+            .Select(profile => (profile.Slot, Original: profile.Backlight))
+            .ToList();
+        foreach (var profile in loadedProfiles.Where(profile => profile.Backlight is < 0 or > 4))
+            profile.Backlight = 4;
+
         _imageBytes = image.ToArray();
         _imagePath = path;
         foreach (var existing in Profiles) existing.PropertyChanged -= Profile_PropertyChanged;
         Profiles.Clear();
-        foreach (var profile in image.ReadProfiles())
+        foreach (var profile in loadedProfiles)
         {
             profile.PropertyChanged += Profile_PropertyChanged;
             Profiles.Add(profile);
@@ -227,6 +264,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ActiveText.Text = $"Active: CH {active.LeftChannel} / CH {active.RightChannel}";
         SetStatus("Image validated. Edit safely or write with verification.", 0);
         UpdateStagedState();
+        foreach (var correction in correctedDimmers)
+            Log($"Hyper {correction.Slot} contained unsupported DIMMER value {correction.Original}; staged safe maximum 4.");
     }
 
     private void Profile_PropertyChanged(object? sender, PropertyChangedEventArgs e) => UpdateStagedState();

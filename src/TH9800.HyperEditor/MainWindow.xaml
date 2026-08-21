@@ -165,10 +165,10 @@
                                         <StackPanel Margin="0,0,0,14">
                                             <DockPanel>
                                                 <TextBlock Text="BACKLIGHT" Style="{StaticResource FieldLabelStyle}" />
-                                                <TextBlock Text="{Binding Backlight, StringFormat=Level {0}}" Foreground="{StaticResource AccentBrush}"
+                                                <TextBlock Text="{Binding BacklightLabel}" Foreground="{StaticResource AccentBrush}"
                                                            FontWeight="Bold" HorizontalAlignment="Right" />
                                             </DockPanel>
-                                            <Slider Minimum="0" Maximum="8" TickFrequency="1" IsSnapToTickEnabled="True"
+                                            <Slider Minimum="0" Maximum="4" TickFrequency="1" IsSnapToTickEnabled="True"
                                                     Value="{Binding Backlight}" Margin="0,4,0,0" />
                                         </StackPanel>
 

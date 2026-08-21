@@ -2,7 +2,7 @@
 
 A focused Windows editor for the six Hyper Memory profiles in the TYT / TYTech TH-9800. It exposes the profile settings that the factory CPS treats as opaque: left and right memory channels, key beep, backlight level, and all four microphone key assignments.
 
-The interface is built for day-to-day radio use: six clear A–F profile cards, friendly channel labels when a CHIRP CSV is available, quick mute and P3-scan actions, automatic backups, guarded writes, and a complete read-back verification after every radio write.
+The interface is built for day-to-day radio use: six clear A–F profile cards, friendly channel labels when a CHIRP CSV is available, clear bulk actions, automatic backups, guarded writes, and a complete read-back verification after every radio write.
 
 > **Experimental radio software:** Always make a verified read before editing. Keep the radio on stable 13.8 V power and do not disconnect the cable during a transfer. You are responsible for complying with your licence, local band plans, and transmit restrictions.
 
@@ -11,12 +11,12 @@ The interface is built for day-to-day radio use: six clear A–F profile cards, 
 - Read all six Hyper Memory profiles from a TH-9800 clone image or directly from the radio
 - Edit both displayed memory channels for profiles A through F
 - Enable or disable the key beep independently for every profile
-- Set backlight and P1–P4 behavior independently in every profile
+- Set the documented DIMMER values (OFF or levels 1–4) and P1–P4 behavior independently in every profile
 - Choose from every documented microphone-key function, with an always-visible beginner reference
 - Apply clear bulk actions or discard every staged edit back to the loaded image
 - Import channel names from a standard CHIRP CSV (the CSV is never embedded in the saved image)
 - Create a timestamped backup before every radio write
-- Read the radio back and verify the exact SHA-256 after every write
+- Wait for the radio to restart, retry the connection when needed, and verify the exact SHA-256 after every write
 - Reject files with the wrong size or missing `NT_9800` identifier
 - Never silently alter settings outside the selected Hyper profile fields
 

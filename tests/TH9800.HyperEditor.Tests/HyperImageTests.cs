@@ -17,7 +17,7 @@ public sealed class HyperImageTests
             SetWord(bytes, offset, 101 + index);
             SetWord(bytes, offset + 4, 201 + index);
             bytes[offset + HyperImage.BeepFlagsOffset] = (byte)(0x12 | (index % 2 == 0 ? 0x80 : 0));
-            bytes[offset + HyperImage.BacklightOffset] = (byte)(index + 1);
+            bytes[offset + HyperImage.BacklightOffset] = (byte)Math.Min(index, 4);
             bytes[offset + HyperImage.P1Offset] = 11;
             bytes[offset + HyperImage.P2Offset] = 12;
             bytes[offset + HyperImage.P3Offset] = (byte)(12 - index);
@@ -28,12 +28,12 @@ public sealed class HyperImageTests
 
         Assert.Equal(6, profiles.Count);
         Assert.Collection(profiles,
-            profile => AssertProfile(profile, 'A', 101, 201, true, 1, 11, 12, 12, 6),
-            profile => AssertProfile(profile, 'B', 102, 202, false, 2, 11, 12, 11, 6),
-            profile => AssertProfile(profile, 'C', 103, 203, true, 3, 11, 12, 10, 6),
-            profile => AssertProfile(profile, 'D', 104, 204, false, 4, 11, 12, 9, 6),
-            profile => AssertProfile(profile, 'E', 105, 205, true, 5, 11, 12, 8, 6),
-            profile => AssertProfile(profile, 'F', 106, 206, false, 6, 11, 12, 7, 6));
+            profile => AssertProfile(profile, 'A', 101, 201, true, 0, 11, 12, 12, 6),
+            profile => AssertProfile(profile, 'B', 102, 202, false, 1, 11, 12, 11, 6),
+            profile => AssertProfile(profile, 'C', 103, 203, true, 2, 11, 12, 10, 6),
+            profile => AssertProfile(profile, 'D', 104, 204, false, 3, 11, 12, 9, 6),
+            profile => AssertProfile(profile, 'E', 105, 205, true, 4, 11, 12, 8, 6),
+            profile => AssertProfile(profile, 'F', 106, 206, false, 4, 11, 12, 7, 6));
     }
 
     [Fact]
@@ -90,6 +90,23 @@ public sealed class HyperImageTests
             Assert.Equal(value, changed[HyperImage.HyperBaseOffset + HyperImage.P1Offset]);
             Assert.Equal(value, changed[HyperImage.HyperBaseOffset + HyperImage.P4Offset]);
         }
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(5)]
+    [InlineData(8)]
+    public void UnsupportedDimmerValuesAreRejected(int value)
+    {
+        var image = HyperImage.FromBytes(SyntheticImage());
+        var profile = new HyperProfile
+        {
+            Slot = 'A', ImageOffset = HyperImage.HyperBaseOffset,
+            LeftChannel = 1, RightChannel = 1, Beep = false, Backlight = value,
+            P1 = 11, P2 = 12, P3 = 7, P4 = 6
+        };
+
+        Assert.Throws<InvalidDataException>(() => image.ApplyProfiles([profile]));
     }
 
     [Fact]

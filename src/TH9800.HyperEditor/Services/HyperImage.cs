@@ -59,7 +59,7 @@ public sealed class HyperImage
                 throw new InvalidDataException($"Invalid Hyper slot {profile.Slot}.");
             if (profile.LeftChannel is < 1 or > 800 || profile.RightChannel is < 1 or > 800)
                 throw new InvalidDataException($"Hyper {profile.Slot} contains a channel outside 1-800.");
-            if (profile.Backlight is < 0 or > 8)
+            if (profile.Backlight is < 0 or > 4)
                 throw new InvalidDataException($"Hyper {profile.Slot} has an invalid backlight level.");
             ValidateButton(profile.Slot, "P1", profile.P1);
             ValidateButton(profile.Slot, "P2", profile.P2);

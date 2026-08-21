@@ -8,7 +8,7 @@
     <AssemblyName>TH9800.HyperStudio</AssemblyName>
     <RootNamespace>TH9800.HyperEditor</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />

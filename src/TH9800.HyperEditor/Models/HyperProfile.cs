@@ -21,7 +21,17 @@ public sealed class HyperProfile : INotifyPropertyChanged
     public int LeftChannel { get => _leftChannel; set => Set(ref _leftChannel, value); }
     public int RightChannel { get => _rightChannel; set => Set(ref _rightChannel, value); }
     public bool Beep { get => _beep; set => Set(ref _beep, value); }
-    public int Backlight { get => _backlight; set => Set(ref _backlight, value); }
+    public int Backlight
+    {
+        get => _backlight;
+        set
+        {
+            var previous = _backlight;
+            Set(ref _backlight, value);
+            if (previous != _backlight) PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BacklightLabel)));
+        }
+    }
+    public string BacklightLabel => Backlight == 0 ? "Off" : $"Level {Backlight}";
     public int P1 { get => _p1; set => Set(ref _p1, value); }
     public int P2 { get => _p2; set => Set(ref _p2, value); }
     public int P3 { get => _p3; set => Set(ref _p3, value); }
