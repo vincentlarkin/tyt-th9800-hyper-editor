@@ -160,5 +160,31 @@
             <Setter Property="FontSize" Value="10" />
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
+
+        <Style x:Key="RailTabItemStyle" TargetType="TabItem">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabRoot" Background="Transparent" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="0,0,0,2" Padding="{TemplateBinding Padding}" Margin="0,0,4,0">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource AccentDarkBrush}" />
+                                <Setter TargetName="TabRoot" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabRoot" Property="Background" Value="#F8F1EC" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Application.Resources>
 </Application>

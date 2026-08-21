@@ -48,7 +48,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="244" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="286" />
+                <ColumnDefinition Width="310" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0" Background="{StaticResource SidebarBrush}" Padding="18">
@@ -71,15 +71,25 @@
                         <Button Click="SaveCopy_Click" Style="{StaticResource SidebarButtonStyle}"><TextBlock Text="Save edited copy…" /></Button>
                         <Button Click="ImportChannels_Click" Style="{StaticResource SidebarButtonStyle}"><TextBlock Text="Import CHIRP labels…" /></Button>
 
-                        <TextBlock Text="QUICK SETUP" Foreground="#93A4A8" FontSize="10" FontWeight="Bold" Margin="3,18,0,8" />
-                        <Button Click="BeepOffAll_Click" Style="{StaticResource SidebarButtonStyle}"><TextBlock Text="Mute BEEP in A–F" /></Button>
-                        <Button Click="ScanAll_Click" Style="{StaticResource SidebarButtonStyle}"><TextBlock Text="Set P3 to SCAN" /></Button>
-                        <Button Click="StandardKeys_Click" Style="{StaticResource SidebarButtonStyle}"
-                                ToolTip="P1 BAND • P2 VFO/MR • P3 TONE • P4 LOW">
-                            <TextBlock Text="Standard mic-key layout" />
+                        <TextBlock Text="BULK ACTIONS" Foreground="#93A4A8" FontSize="10" FontWeight="Bold" Margin="3,18,0,8" />
+                        <Button Click="BeepOffAll_Click" Style="{StaticResource SidebarButtonStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Mute BEEP in all profiles" />
+                                <TextBlock Text="A through F" FontSize="10" Foreground="#A8B7BA" />
+                            </StackPanel>
                         </Button>
-                        <Button Click="KeyReference_Click" Style="{StaticResource SidebarButtonStyle}">
-                            <TextBlock Text="What do the P-key choices do?" />
+                        <Button Click="FactoryKeys_Click" Style="{StaticResource SidebarButtonStyle}"
+                                ToolTip="P1 BAND • P2 VFO/MR • P3 TONE • P4 LOW">
+                            <StackPanel>
+                                <TextBlock Text="Restore factory P1–P4" />
+                                <TextBlock Text="BAND · VFO/MR · TONE · LOW" FontSize="10" Foreground="#A8B7BA" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="DiscardStaged_Click" Style="{StaticResource SidebarButtonStyle}">
+                            <StackPanel>
+                                <TextBlock Text="Discard all staged edits" />
+                                <TextBlock Text="Return to the loaded image" FontSize="10" Foreground="#A8B7BA" />
+                            </StackPanel>
                         </Button>
                     </StackPanel>
 
@@ -204,7 +214,7 @@
             <Border Grid.Column="2" Background="#ECE8DF" BorderBrush="#DDD7CB" BorderThickness="1,0,0,0" Padding="16">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14" Padding="16">
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12" Padding="16">
                         <StackPanel>
                             <TextBlock Text="Loaded image" FontSize="17" FontWeight="SemiBold" />
                             <TextBlock x:Name="ImagePathText" Text="Read the radio or open an image."
@@ -214,32 +224,53 @@
                             <TextBlock x:Name="ActiveText" Text="Active profile —" Foreground="{StaticResource TealBrush}" FontWeight="SemiBold" Margin="0,10,0,0" />
                         </StackPanel>
                     </Border>
-                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,14" Padding="16">
+                    <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,12" Padding="14">
                         <StackPanel>
-                            <TextBlock Text="Verified safeguards" FontSize="17" FontWeight="SemiBold" />
-                            <TextBlock Text="✓ NT_9800 model + size check" Foreground="{StaticResource SuccessBrush}" Margin="0,9,0,0" />
-                            <TextBlock Text="✓ Automatic pre-write clone" Foreground="{StaticResource SuccessBrush}" Margin="0,5,0,0" />
-                            <TextBlock Text="✓ Full post-write readback" Foreground="{StaticResource SuccessBrush}" Margin="0,5,0,0" />
-                            <TextBlock Text="✓ Exact SHA-256 comparison" Foreground="{StaticResource SuccessBrush}" Margin="0,5,0,0" />
-                            <Border Background="#FFF3E5" BorderBrush="#E8C99C" BorderThickness="1" CornerRadius="7" Padding="9" Margin="0,12,0,0">
-                                <TextBlock Text="Edits are staged locally until Write + verify is confirmed." TextWrapping="Wrap"
-                                           Foreground="{StaticResource WarningBrush}" FontSize="11" />
-                            </Border>
+                            <TextBlock Text="P1–P4 choices" FontSize="17" FontWeight="SemiBold" />
+                            <TextBlock Text="Every option available on every Hyper card" Foreground="{StaticResource MutedBrush}" FontSize="10" Margin="0,1,0,7" />
+                            <ItemsControl ItemsSource="{Binding KeyOptions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,1">
+                                            <Grid.ColumnDefinitions><ColumnDefinition Width="58"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}" Foreground="{StaticResource AccentDarkBrush}" FontWeight="Bold" FontSize="10" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Description}" Foreground="{StaticResource MutedBrush}"
+                                                       FontSize="10" TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </Border>
                     <Border Grid.Row="2" Style="{StaticResource CardStyle}" Margin="0" Padding="16">
-                        <DockPanel>
-                            <TextBlock DockPanel.Dock="Top" Text="Activity" FontSize="17" FontWeight="SemiBold" Margin="0,0,0,8" />
-                            <ListBox ItemsSource="{Binding Activity}" Background="Transparent" BorderThickness="0"
-                                     Foreground="{StaticResource MutedBrush}" FontSize="11"
-                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" />
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </DockPanel>
+                        <TabControl Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource RailTabItemStyle}">
+                            <TabItem Header="ACTIVITY">
+                                <ListBox ItemsSource="{Binding Activity}" Background="Transparent" BorderThickness="0"
+                                         Foreground="{StaticResource MutedBrush}" FontSize="11" FontWeight="Normal" Margin="0,8,0,0"
+                                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2" />
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </TabItem>
+                            <TabItem Header="INFO &amp; SAFETY">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" FontWeight="Normal" Margin="0,8,0,0">
+                                    <StackPanel>
+                                        <TextBlock Text="WRITE SAFEGUARDS" Style="{StaticResource FieldLabelStyle}" />
+                                        <TextBlock Text="✓ NT_9800 model + size check" Foreground="{StaticResource SuccessBrush}" Margin="0,7,0,0" />
+                                        <TextBlock Text="✓ Automatic pre-write clone" Foreground="{StaticResource SuccessBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="✓ Full post-write readback" Foreground="{StaticResource SuccessBrush}" Margin="0,4,0,0" />
+                                        <TextBlock Text="✓ Exact SHA-256 comparison" Foreground="{StaticResource SuccessBrush}" Margin="0,4,0,0" />
+                                        <Border Background="#FFF3E5" BorderBrush="#E8C99C" BorderThickness="1" CornerRadius="7" Padding="9" Margin="0,10,0,0">
+                                            <TextBlock Text="Edits remain local until Write + verify is confirmed. Keep power and cable steady during transfers."
+                                                       TextWrapping="Wrap" Foreground="{StaticResource WarningBrush}" FontSize="11" />
+                                        </Border>
+                                    </StackPanel>
+                                </ScrollViewer>
+                            </TabItem>
+                        </TabControl>
                     </Border>
                 </Grid>
             </Border>

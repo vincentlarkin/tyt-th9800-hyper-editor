@@ -24,9 +24,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public ObservableCollection<ChannelOption> ChannelOptions { get; } = [];
     public IReadOnlyList<KeyOption> KeyOptions { get; } =
     [
-        new(0, "OFF"), new(1, "SCAN"), new(2, "SQL.OFF"), new(3, "TCALL"),
-        new(4, "RPTR"), new(5, "PRI"), new(6, "LOW"), new(7, "TONE"),
-        new(8, "MHz"), new(9, "REV"), new(10, "HOME"), new(11, "BAND"), new(12, "VFO/MR")
+        new(0, "OFF", "No assigned action"),
+        new(1, "SCAN", "Start Main-band scanning"),
+        new(2, "SQL.OFF", "Open Main-band squelch"),
+        new(3, "TCALL", "Send the selected tone burst"),
+        new(4, "RPTR", "Select repeater shift"),
+        new(5, "PRI", "Priority monitoring"),
+        new(6, "LOW", "Select transmit power"),
+        new(7, "TONE", "Open CTCSS/DCS controls"),
+        new(8, "MHz", "Tune in 1 MHz steps"),
+        new(9, "REV", "Reverse repeater TX/RX"),
+        new(10, "HOME", "Recall the HOME channel"),
+        new(11, "BAND", "Move Main left/right"),
+        new(12, "VFO/MR", "Switch VFO / Memory")
     ];
 
     public string? SelectedPort
@@ -117,16 +127,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void BeepOffAll_Click(object sender, RoutedEventArgs e)
     {
         foreach (var profile in Profiles) profile.Beep = false;
-        Log("Staged BEEP OFF for Hyper A–F. No radio write yet.");
+        Log("Staged BEEP OFF in all six Hyper profiles. No radio write yet.");
     }
 
-    private void ScanAll_Click(object sender, RoutedEventArgs e)
-    {
-        foreach (var profile in Profiles) profile.P3 = 1;
-        Log("Staged P3 = SCAN for Hyper A–F. No radio write yet.");
-    }
-
-    private void StandardKeys_Click(object sender, RoutedEventArgs e)
+    private void FactoryKeys_Click(object sender, RoutedEventArgs e)
     {
         foreach (var profile in Profiles)
         {
@@ -135,25 +139,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             profile.P3 = 7;
             profile.P4 = 6;
         }
-        Log("Staged standard mic keys in A–F: BAND / VFO-MR / TONE / LOW.");
+        Log("Staged factory mic-key defaults in A–F: BAND / VFO-MR / TONE / LOW.");
     }
 
-    private void KeyReference_Click(object sender, RoutedEventArgs e) =>
-        MessageBox.Show(this,
-            "OFF      No assigned action\n" +
-            "SCAN     Start the scanner on the Main band\n" +
-            "SQL.OFF  Open the Main-band squelch\n" +
-            "TCALL    Send the selected tone burst\n" +
-            "RPTR     Select repeater shift direction\n" +
-            "PRI      Activate priority monitoring\n" +
-            "LOW      Select transmit power\n" +
-            "TONE     Open CTCSS/DCS controls\n" +
-            "MHz      Tune in 1 MHz steps\n" +
-            "REV      Reverse repeater TX/RX frequencies\n" +
-            "HOME     Recall the Main-band HOME channel\n" +
-            "BAND     Move Main control between left and right\n" +
-            "VFO/MR   Switch between VFO and Memory mode",
-            "Microphone P1–P4 reference", MessageBoxButton.OK, MessageBoxImage.Information);
+    private void DiscardStaged_Click(object sender, RoutedEventArgs e)
+    {
+        if (_imageBytes is null)
+        {
+            MessageBox.Show(this, "There is no loaded image to restore.", "Nothing loaded",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        LoadImage(_imageBytes, _imagePath ?? "Loaded radio image");
+        Log("Discarded all staged profile edits and restored the loaded image.");
+    }
 
     private async void WriteVerify_Click(object sender, RoutedEventArgs e)
     {
@@ -403,5 +403,5 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    public sealed record KeyOption(int Value, string Name);
+    public sealed record KeyOption(int Value, string Name, string Description);
 }

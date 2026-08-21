@@ -12,7 +12,8 @@ The interface is built for day-to-day radio use: six clear A–F profile cards, 
 - Edit both displayed memory channels for profiles A through F
 - Enable or disable the key beep independently for every profile
 - Set backlight and P1–P4 behavior independently in every profile
-- Choose from every documented microphone-key function, with an in-app beginner reference
+- Choose from every documented microphone-key function, with an always-visible beginner reference
+- Apply clear bulk actions or discard every staged edit back to the loaded image
 - Import channel names from a standard CHIRP CSV (the CSV is never embedded in the saved image)
 - Create a timestamped backup before every radio write
 - Read the radio back and verify the exact SHA-256 after every write
