@@ -9,7 +9,10 @@ public sealed class HyperProfile : INotifyPropertyChanged
     private int _rightChannel;
     private bool _beep;
     private int _backlight;
-    private int _p3Long;
+    private int _p1;
+    private int _p2;
+    private int _p3;
+    private int _p4;
 
     public required char Slot { get; init; }
     public required int ImageOffset { get; init; }
@@ -19,7 +22,10 @@ public sealed class HyperProfile : INotifyPropertyChanged
     public int RightChannel { get => _rightChannel; set => Set(ref _rightChannel, value); }
     public bool Beep { get => _beep; set => Set(ref _beep, value); }
     public int Backlight { get => _backlight; set => Set(ref _backlight, value); }
-    public int P3Long { get => _p3Long; set => Set(ref _p3Long, value); }
+    public int P1 { get => _p1; set => Set(ref _p1, value); }
+    public int P2 { get => _p2; set => Set(ref _p2, value); }
+    public int P3 { get => _p3; set => Set(ref _p3, value); }
+    public int P4 { get => _p4; set => Set(ref _p4, value); }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

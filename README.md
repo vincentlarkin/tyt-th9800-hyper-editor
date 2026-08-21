@@ -1,6 +1,6 @@
 # TH-9800 Hyper Studio
 
-A focused Windows editor for the six Hyper Memory profiles in the TYT / TYTech TH-9800. It exposes the profile settings that the factory CPS treats as opaque: left and right memory channels, key beep, backlight level, and the P3 long-press assignment.
+A focused Windows editor for the six Hyper Memory profiles in the TYT / TYTech TH-9800. It exposes the profile settings that the factory CPS treats as opaque: left and right memory channels, key beep, backlight level, and all four microphone key assignments.
 
 The interface is built for day-to-day radio use: six clear A–F profile cards, friendly channel labels when a CHIRP CSV is available, quick mute and P3-scan actions, automatic backups, guarded writes, and a complete read-back verification after every radio write.
 
@@ -11,7 +11,8 @@ The interface is built for day-to-day radio use: six clear A–F profile cards, 
 - Read all six Hyper Memory profiles from a TH-9800 clone image or directly from the radio
 - Edit both displayed memory channels for profiles A through F
 - Enable or disable the key beep independently for every profile
-- Set backlight and P3 long-press behavior per profile
+- Set backlight and P1–P4 behavior independently in every profile
+- Choose from every documented microphone-key function, with an in-app beginner reference
 - Import channel names from a standard CHIRP CSV (the CSV is never embedded in the saved image)
 - Create a timestamped backup before every radio write
 - Read the radio back and verify the exact SHA-256 after every write
@@ -54,7 +55,7 @@ Radio clone images and personal channel plans can contain callsigns, location ch
 
 ## Technical notes
 
-The TH-9800 clone image is 65,296 bytes and starts with the ASCII model identifier `NT_9800`. The six 64-byte Hyper Memory blocks begin at image offset `0xDA90`, with A through F spaced by `0x40`. The code keeps these details isolated in `HyperImage`; tests use synthetic images only.
+The TH-9800 clone image is 65,296 bytes and starts with the ASCII model identifier `NT_9800`. The six 64-byte Hyper Memory blocks begin at image offset `0xDA90`, with A through F spaced by `0x40`. Within each block, microphone assignments P1 through P4 are stored consecutively at offsets `0x38` through `0x3B`. The code keeps these details isolated in `HyperImage`; tests use synthetic images only.
 
 This project is independent community software and is not affiliated with TYT Electronics or CHIRP.
 

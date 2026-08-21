@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Windows;
+using System.Windows.Media;
 using Microsoft.Win32;
 using TH9800.HyperEditor.Models;
 using TH9800.HyperEditor.Services;
@@ -21,10 +22,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public ObservableCollection<string> Ports { get; } = [];
     public ObservableCollection<string> Activity { get; } = [];
     public ObservableCollection<ChannelOption> ChannelOptions { get; } = [];
-    public IReadOnlyList<P3Option> P3Options { get; } =
+    public IReadOnlyList<KeyOption> KeyOptions { get; } =
     [
         new(0, "OFF"), new(1, "SCAN"), new(2, "SQL.OFF"), new(3, "TCALL"),
-        new(4, "PPTR"), new(5, "PRI"), new(6, "LOW"), new(7, "TONE"),
+        new(4, "RPTR"), new(5, "PRI"), new(6, "LOW"), new(7, "TONE"),
         new(8, "MHz"), new(9, "REV"), new(10, "HOME"), new(11, "BAND"), new(12, "VFO/MR")
     ];
 
@@ -121,9 +122,38 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void ScanAll_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var profile in Profiles) profile.P3Long = 1;
-        Log("Staged P3-long = SCAN for Hyper A–F. No radio write yet.");
+        foreach (var profile in Profiles) profile.P3 = 1;
+        Log("Staged P3 = SCAN for Hyper A–F. No radio write yet.");
     }
+
+    private void StandardKeys_Click(object sender, RoutedEventArgs e)
+    {
+        foreach (var profile in Profiles)
+        {
+            profile.P1 = 11;
+            profile.P2 = 12;
+            profile.P3 = 7;
+            profile.P4 = 6;
+        }
+        Log("Staged standard mic keys in A–F: BAND / VFO-MR / TONE / LOW.");
+    }
+
+    private void KeyReference_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show(this,
+            "OFF      No assigned action\n" +
+            "SCAN     Start the scanner on the Main band\n" +
+            "SQL.OFF  Open the Main-band squelch\n" +
+            "TCALL    Send the selected tone burst\n" +
+            "RPTR     Select repeater shift direction\n" +
+            "PRI      Activate priority monitoring\n" +
+            "LOW      Select transmit power\n" +
+            "TONE     Open CTCSS/DCS controls\n" +
+            "MHz      Tune in 1 MHz steps\n" +
+            "REV      Reverse repeater TX/RX frequencies\n" +
+            "HOME     Recall the Main-band HOME channel\n" +
+            "BAND     Move Main control between left and right\n" +
+            "VFO/MR   Switch between VFO and Memory mode",
+            "Microphone P1–P4 reference", MessageBoxButton.OK, MessageBoxImage.Information);
 
     private async void WriteVerify_Click(object sender, RoutedEventArgs e)
     {
@@ -183,14 +213,56 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var image = HyperImage.FromBytes(bytes);
         _imageBytes = image.ToArray();
         _imagePath = path;
+        foreach (var existing in Profiles) existing.PropertyChanged -= Profile_PropertyChanged;
         Profiles.Clear();
-        foreach (var profile in image.ReadProfiles()) Profiles.Add(profile);
+        foreach (var profile in image.ReadProfiles())
+        {
+            profile.PropertyChanged += Profile_PropertyChanged;
+            Profiles.Add(profile);
+        }
         var active = image.ReadActiveProfile();
-        ImageBadge.Text = "NT_9800 • 65,296 bytes";
+        ImageBadge.Text = "NT_9800 • 65,296 BYTES";
         ImagePathText.Text = path;
         HashText.Text = $"SHA-256\n{image.Sha256[..32]}…";
         ActiveText.Text = $"Active: CH {active.LeftChannel} / CH {active.RightChannel}";
         SetStatus("Image validated. Edit safely or write with verification.", 0);
+        UpdateStagedState();
+    }
+
+    private void Profile_PropertyChanged(object? sender, PropertyChangedEventArgs e) => UpdateStagedState();
+
+    private void UpdateStagedState()
+    {
+        if (_imageBytes is null || Profiles.Count == 0)
+        {
+            StagedText.Text = "No image loaded";
+            return;
+        }
+
+        try
+        {
+            var count = HyperImage.DifferentOffsets(_imageBytes, BuildEditedImage()).Count;
+            if (count == 0)
+            {
+                StagedText.Text = "No staged changes";
+                StagedText.Foreground = (Brush)FindResource("SuccessBrush");
+                StagedDot.Fill = (Brush)FindResource("SuccessBrush");
+                StagedBadge.Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xF3, 0xEF));
+                StagedBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0xB9, 0xD9, 0xCC));
+            }
+            else
+            {
+                StagedText.Text = $"{count:N0} staged byte change{(count == 1 ? string.Empty : "s")}";
+                StagedText.Foreground = (Brush)FindResource("AccentDarkBrush");
+                StagedDot.Fill = (Brush)FindResource("AccentBrush");
+                StagedBadge.Background = new SolidColorBrush(Color.FromRgb(0xFB, 0xE9, 0xE2));
+                StagedBadge.BorderBrush = new SolidColorBrush(Color.FromRgb(0xEA, 0xB4, 0x9F));
+            }
+        }
+        catch
+        {
+            StagedText.Text = "Check staged values";
+        }
     }
 
     private async Task RunBusyAsync(string status, Func<Task> operation)
@@ -331,5 +403,5 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private void OnPropertyChanged([CallerMemberName] string? name = null) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    public sealed record P3Option(int Value, string Name);
+    public sealed record KeyOption(int Value, string Name);
 }

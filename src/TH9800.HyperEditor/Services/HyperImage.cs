@@ -12,7 +12,10 @@ public sealed class HyperImage
     public const int HyperBlockLength = 0x40;
     public const int BacklightOffset = 0x22;
     public const int BeepFlagsOffset = 0x24;
-    public const int P3LongOffset = 0x3A;
+    public const int P1Offset = 0x38;
+    public const int P2Offset = 0x39;
+    public const int P3Offset = 0x3A;
+    public const int P4Offset = 0x3B;
 
     private readonly byte[] _bytes;
 
@@ -58,14 +61,19 @@ public sealed class HyperImage
                 throw new InvalidDataException($"Hyper {profile.Slot} contains a channel outside 1-800.");
             if (profile.Backlight is < 0 or > 8)
                 throw new InvalidDataException($"Hyper {profile.Slot} has an invalid backlight level.");
-            if (profile.P3Long is < 0 or > 12)
-                throw new InvalidDataException($"Hyper {profile.Slot} has an invalid P3 assignment.");
+            ValidateButton(profile.Slot, "P1", profile.P1);
+            ValidateButton(profile.Slot, "P2", profile.P2);
+            ValidateButton(profile.Slot, "P3", profile.P3);
+            ValidateButton(profile.Slot, "P4", profile.P4);
 
             var offset = HyperBaseOffset + (profile.Slot - 'A') * HyperBlockLength;
             WriteMemorySelection(output, offset, profile.LeftChannel);
             WriteMemorySelection(output, offset + 4, profile.RightChannel);
             output[offset + BacklightOffset] = (byte)profile.Backlight;
-            output[offset + P3LongOffset] = (byte)profile.P3Long;
+            output[offset + P1Offset] = (byte)profile.P1;
+            output[offset + P2Offset] = (byte)profile.P2;
+            output[offset + P3Offset] = (byte)profile.P3;
+            output[offset + P4Offset] = (byte)profile.P4;
             output[offset + BeepFlagsOffset] = profile.Beep
                 ? (byte)(output[offset + BeepFlagsOffset] | 0x80)
                 : (byte)(output[offset + BeepFlagsOffset] & 0x7F);
@@ -93,8 +101,17 @@ public sealed class HyperImage
         RightChannel = ReadUInt16(offset + 4),
         Beep = (_bytes[offset + BeepFlagsOffset] & 0x80) != 0,
         Backlight = _bytes[offset + BacklightOffset],
-        P3Long = _bytes[offset + P3LongOffset]
+        P1 = _bytes[offset + P1Offset],
+        P2 = _bytes[offset + P2Offset],
+        P3 = _bytes[offset + P3Offset],
+        P4 = _bytes[offset + P4Offset]
     };
+
+    private static void ValidateButton(char slot, string button, int value)
+    {
+        if (value is < 0 or > 12)
+            throw new InvalidDataException($"Hyper {slot} has an invalid {button} assignment.");
+    }
 
     private int ReadUInt16(int offset) => _bytes[offset] | _bytes[offset + 1] << 8;
 
