@@ -1,0 +1,16 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+*.suo
+*.bin
+*.img
+*.dat
+*.data
+*.csv
+*.xlsx
+*.xls
+*.log
+artifacts/
+publish/
