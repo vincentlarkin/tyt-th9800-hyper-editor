@@ -23,7 +23,7 @@ The interface is built for day-to-day radio use: six clear A–F profile cards, 
 ## Requirements
 
 - Windows 10 or 11
-- [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
 - A programming cable whose driver creates a Windows COM port
 - A TYT / TYTech TH-9800 compatible radio
 
